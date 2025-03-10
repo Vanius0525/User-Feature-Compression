@@ -238,8 +238,8 @@ def gen_modified_embedding(item_path, attr_path, csv_file_path, json_file_path, 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', default='/home/tongwan/Yelp_raw_data/proc_data_0/')
-    parser.add_argument('--save_dir', default='/home/tongwan/Yelp_save/proc_data_0/')
+    parser.add_argument('--data_dir', default='/home/tongwan/Yelp_raw_data/proc_data_6/')
+    parser.add_argument('--save_dir', default='/home/tongwan/Yelp_save/proc_data_6/')
     parser.add_argument('--reload_path', type=str, default='', help='model ckpt dir')
     parser.add_argument('--setting_path', type=str, default='', help='setting dir')
 

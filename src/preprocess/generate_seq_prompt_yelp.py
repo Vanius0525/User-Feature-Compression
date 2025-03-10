@@ -19,7 +19,7 @@ lm_hist_max = 30
 item_name_map = {
     'ml-1m': 'movie',
     'ml-25m': 'movie',
-    'yelp': 'businesses',
+    'Yelp': 'businesses',
 }
 
 def generate_ctr_data(sequence_data, lm_hist_idx, uid_set):
@@ -196,7 +196,7 @@ if __name__ == '__main__':
     DATA_DIR = '../../data/'
     DATA_SET_NAME = 'Yelp'
     print(DATA_SET_NAME)
-    PROCESSED_DIR = os.path.join(DATA_DIR, DATA_SET_NAME, 'proc_data_4')
+    PROCESSED_DIR = os.path.join(DATA_DIR, DATA_SET_NAME, 'proc_data_6')
     SEQUENCE_PATH = os.path.join(PROCESSED_DIR, 'sequential_data.json')
     ITEM2ATTRIBUTE_PATH = os.path.join(PROCESSED_DIR, 'item2attributes.json')
     DATAMAP_PATH = os.path.join(PROCESSED_DIR, 'datamaps.json')
@@ -234,18 +234,20 @@ if __name__ == '__main__':
     # save_pickle(test_rerank, PROCESSED_DIR + '/rerank.test')
     # train_rerank, test_rerank = None, None
 
-    # datamap = load_json(DATAMAP_PATH)
+    datamap = load_json(DATAMAP_PATH)
 
-    # statis = {
-    #     'rerank_list_len': rerank_list_len,
-    #     'attribute_ft_num': datamap['attribute_ft_num'],
-    #     'rating_threshold': rating_threshold,
-    #     'item_num': len(datamap['id2item']),
-    #     'attribute_num': len(datamap['id2attribute']),
-    #     'rating_num': 5,
-    #     'dense_dim': 0,
-    # }
-    # save_json(statis, PROCESSED_DIR + '/stat.json')
+    statis = {
+#        'rerank_list_len': rerank_list_len,
+        'attribute_ft_num': datamap['attribute_ft_num'],
+        'rating_threshold': rating_threshold,
+        'item_num': len(datamap['id2item']),
+        'attribute_num': len(datamap['id2attribute']),
+        'user_num': len(datamap['id2user']),
+        'user_attribute_num': len(datamap['id2user_attribute']),
+        'rating_num': 5,
+        'dense_dim': 0,
+    }
+    save_json(statis, PROCESSED_DIR + '/stat.json')
 
     # print('generating item prompt')
     # item_emb_prompt, item_gen_prompt = generate_item_prompt(item2attribute, datamap, DATA_SET_NAME)

@@ -7,7 +7,7 @@ dataset_name = 'Yelp'
 # dataset_name = 'ml-25m'
 
 # Training args
-data_dir = f'../../data/{dataset_name}/proc_data_4'
+data_dir = f'../../data/{dataset_name}/proc_data_6'
 task_name = 'ctr'
 layer = -1  # which layer of LLM
 # aug_prefix = f'embeddings/marc_avg_all_layer{layer}'  # for original LLM representation

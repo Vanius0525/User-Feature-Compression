@@ -20,18 +20,18 @@ class MyDataset(Data.Dataset):
         self.group_aug = group_aug
         self.set = set
         self.data = load_pickle(data_path + f'/{task}.{set}')
-        # if self.group_aug:
-        #     self.stat = load_json(data_path + f'/{aug_prefix}_group_stat.json')
-        # elif self.augment:
-        #     self.stat = load_json(data_path + f'/{aug_prefix}_stat.json')
-        # else:
-        #     self.stat = load_json(data_path + f'/stat.json')
-        # self.item_num = self.stat['item_num']
-        # self.attr_num = self.stat['attribute_num']
-        # self.attr_ft_num = self.stat['attribute_ft_num']
-        # self.rating_num = self.stat['rating_num']
-        # self.dense_dim = self.stat['dense_dim']
-        # print('dense dim!!!', self.dense_dim)
+        if self.group_aug:
+            self.stat = load_json(data_path + f'/{aug_prefix}_group_stat.json')
+        elif self.augment:
+            self.stat = load_json(data_path + f'/{aug_prefix}_stat.json')
+        else:
+            self.stat = load_json(data_path + f'/stat.json')
+        self.item_num = self.stat['item_num']
+        self.attr_num = self.stat['attribute_num']
+        self.attr_ft_num = self.stat['attribute_ft_num']
+        self.rating_num = self.stat['rating_num']
+        self.dense_dim = self.stat['dense_dim']
+        print('dense dim!!!', self.dense_dim)
         if task == 'rerank':
             self.max_list_len = self.stat['rerank_list_len']
         self.length = len(self.data)
