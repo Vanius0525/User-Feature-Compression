@@ -20,23 +20,24 @@ class MyDataset(Data.Dataset):
         self.group_aug = group_aug
         self.set = set
         self.data = load_pickle(data_path + f'/{task}.{set}')
-        if self.group_aug:
-            self.stat = load_json(data_path + f'/{aug_prefix}_group_stat.json')
-        elif self.augment:
-            self.stat = load_json(data_path + f'/{aug_prefix}_stat.json')
-        else:
-            self.stat = load_json(data_path + f'/stat.json')
-        self.item_num = self.stat['item_num']
-        self.attr_num = self.stat['attribute_num']
-        self.attr_ft_num = self.stat['attribute_ft_num']
-        self.rating_num = self.stat['rating_num']
-        self.dense_dim = self.stat['dense_dim']
+        # if self.group_aug:
+        #     self.stat = load_json(data_path + f'/{aug_prefix}_group_stat.json')
+        # elif self.augment:
+        #     self.stat = load_json(data_path + f'/{aug_prefix}_stat.json')
+        # else:
+        #     self.stat = load_json(data_path + f'/stat.json')
+        # self.item_num = self.stat['item_num']
+        # self.attr_num = self.stat['attribute_num']
+        # self.attr_ft_num = self.stat['attribute_ft_num']
+        # self.rating_num = self.stat['rating_num']
+        # self.dense_dim = self.stat['dense_dim']
         # print('dense dim!!!', self.dense_dim)
         if task == 'rerank':
             self.max_list_len = self.stat['rerank_list_len']
         self.length = len(self.data)
         self.sequential_data = load_json(data_path + '/sequential_data.json')
         self.item2attribution = load_json(data_path + '/item2attributes.json')
+        self.user2attribution = load_json(data_path + '/user2attributes.json')
         datamaps = load_json(data_path + '/datamaps.json')
         self.id2item = datamaps['id2item']
         self.id2user = datamaps['id2user']
@@ -115,38 +116,38 @@ class MyDataset(Data.Dataset):
                 out_dict['item_group_aug_vec'] = torch.tensor(item_group_aug_vec).float()
                 out_dict['user_pos_group_aug_vec'] = torch.tensor(user_pos_group_aug_vec).float()
                 out_dict['user_neg_group_aug_vec'] = torch.tensor(user_neg_group_aug_vec).float()
-        elif self.task == 'rerank':
-            uid, seq_idx, candidates, candidate_lbs = self.data[_id]
-            candidates_attr = [self.item2attribution[str(idx)] for idx in candidates]
-            item_seq, rating_seq = self.sequential_data[str(uid)]
-            hist_seq_len = seq_idx - max(0, seq_idx - self.max_hist_len)
-            hist_item_seq = item_seq[max(0, seq_idx - self.max_hist_len): seq_idx]
-            hist_rating_seq = rating_seq[max(0, seq_idx - self.max_hist_len): seq_idx]
-            hist_attri_seq = [self.item2attribution[str(idx)] for idx in hist_item_seq]
-            out_dict = {
-                'iid_list': torch.tensor(candidates).long(),
-                'aid_list': torch.tensor(candidates_attr).long(),
-                'lb_list': torch.tensor(candidate_lbs).long(),
-                'hist_iid_seq': torch.tensor(hist_item_seq).long(),
-                'hist_aid_seq': torch.tensor(hist_attri_seq).long(),
-                'hist_rate_seq': torch.tensor(hist_rating_seq).long(),
-                'hist_seq_len': torch.tensor(hist_seq_len).long()
-            }
-            if self.augment:
-                item_aug_vec = [torch.tensor(self.item_aug_data[str(self.id2item[str(idx)])]).float()
-                                for idx in candidates]
-                hist_aug_vec = self.hist_aug_data[str(self.id2user[str(uid)])]
-                out_dict['item_aug_vec_list'] = item_aug_vec
-                out_dict['hist_aug_vec'] = torch.tensor(hist_aug_vec).float()
-            if self.group_aug:
-                item_group_aug_vec = [torch.tensor(self.group_item_aug_data[str(self.item_group_map[str(iid)])]).float()
-                                      for iid in candidates]
-                user_pos_group_aug_vec = self.group_pos_hst_aug_data[str(self.user_group_map[str(uid)][1])]
-                user_neg_group_aug_vec = self.group_neg_hst_aug_data[str(self.user_group_map[str(uid)][0])]
+        # elif self.task == 'rerank':
+        #     uid, seq_idx, candidates, candidate_lbs = self.data[_id]
+        #     candidates_attr = [self.item2attribution[str(idx)] for idx in candidates]
+        #     item_seq, rating_seq = self.sequential_data[str(uid)]
+        #     hist_seq_len = seq_idx - max(0, seq_idx - self.max_hist_len)
+        #     hist_item_seq = item_seq[max(0, seq_idx - self.max_hist_len): seq_idx]
+        #     hist_rating_seq = rating_seq[max(0, seq_idx - self.max_hist_len): seq_idx]
+        #     hist_attri_seq = [self.item2attribution[str(idx)] for idx in hist_item_seq]
+        #     out_dict = {
+        #         'iid_list': torch.tensor(candidates).long(),
+        #         'aid_list': torch.tensor(candidates_attr).long(),
+        #         'lb_list': torch.tensor(candidate_lbs).long(),
+        #         'hist_iid_seq': torch.tensor(hist_item_seq).long(),
+        #         'hist_aid_seq': torch.tensor(hist_attri_seq).long(),
+        #         'hist_rate_seq': torch.tensor(hist_rating_seq).long(),
+        #         'hist_seq_len': torch.tensor(hist_seq_len).long()
+        #     }
+        #     if self.augment:
+        #         item_aug_vec = [torch.tensor(self.item_aug_data[str(self.id2item[str(idx)])]).float()
+        #                         for idx in candidates]
+        #         hist_aug_vec = self.hist_aug_data[str(self.id2user[str(uid)])]
+        #         out_dict['item_aug_vec_list'] = item_aug_vec
+        #         out_dict['hist_aug_vec'] = torch.tensor(hist_aug_vec).float()
+        #     if self.group_aug:
+        #         item_group_aug_vec = [torch.tensor(self.group_item_aug_data[str(self.item_group_map[str(iid)])]).float()
+        #                               for iid in candidates]
+        #         user_pos_group_aug_vec = self.group_pos_hst_aug_data[str(self.user_group_map[str(uid)][1])]
+        #         user_neg_group_aug_vec = self.group_neg_hst_aug_data[str(self.user_group_map[str(uid)][0])]
 
-                out_dict['item_group_aug_vec_list'] = item_group_aug_vec
-                out_dict['user_pos_group_aug_vec'] = torch.tensor(user_pos_group_aug_vec).float()
-                out_dict['user_neg_group_aug_vec'] = torch.tensor(user_neg_group_aug_vec).float()
+        #         out_dict['item_group_aug_vec_list'] = item_group_aug_vec
+        #         out_dict['user_pos_group_aug_vec'] = torch.tensor(user_pos_group_aug_vec).float()
+        #         out_dict['user_neg_group_aug_vec'] = torch.tensor(user_neg_group_aug_vec).float()
         else:
             raise NotImplementedError
 

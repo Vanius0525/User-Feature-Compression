@@ -3,11 +3,11 @@ import os
 import sys
 
 # dataset_name = 'ml-1m'
-dataset_name = 'Yelp_raw_data'
+dataset_name = 'Yelp'
 # dataset_name = 'ml-25m'
 
 # Training args
-data_dir = f'/home/tongwan/{dataset_name}/proc_data_0/'
+data_dir = f'../../data/{dataset_name}/proc_data_4'
 task_name = 'ctr'
 layer = -1  # which layer of LLM
 # aug_prefix = f'embeddings/marc_avg_all_layer{layer}'  # for original LLM representation
@@ -56,7 +56,7 @@ else:
     experts = [1, 2, 3, 4, 5, 6]
     num_worker = 4
 
-if dataset_name == 'yelp':
+if dataset_name == 'Yelp':
     lrs = ['1e-4', '2e-4', '5e-4', '1e-3']
 else:
     lrs = ['1e-4', '5e-4', '1e-3', '2e-3']
@@ -68,7 +68,7 @@ for lr_sched in ['cosine']:
             for expert_num in experts:
                 print('---------------bs, lr, epoch, expert , convert arch, gru----------', batch_size,
                       lr, epoch, expert_num, convert_arch, model)
-                subprocess.run(['python', '-u', 'main_ctr.py',
+                subprocess.run(['python3', '-u', 'main_ctr.py',
                                 f'--save_dir=./model/{dataset_name}/{task_name}/{model}/WDA_Emb{embed_size}_epoch{epoch}'
                                 f'_bs{batch_size}_lr{lr}_{lr_sched}_cnvt_arch_{convert_arch}_cnvt_type_{convert_type}'
                                 f'_eprt_{expert_num}_wd{weight_decay}_drop{dropout}' + \

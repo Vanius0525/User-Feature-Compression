@@ -55,6 +55,12 @@ def yelp(data_file, rating_score):
     print('total review', all_num, 'remain', remain_num, remain_num / all_num)
     return datas
 
+def bucket_item_review(n):
+    if n == 0: return "item_review_0"
+    elif 1 <= n <= 5: return "item_review_1-5"
+    elif 6 <= n <= 20: return "item_review_6-20"
+    elif 21 <= n <= 100: return "item_review_21-100"
+    else: return "item_review_101+"
 
 def yelp_meta(meta_file, data_maps):  # return the metadata of products
     datas = {}
@@ -66,16 +72,189 @@ def yelp_meta(meta_file, data_maps):  # return the metadata of products
             title = inter.get('name', None)
             categories = inter.get('categories', None)
             city = inter.get('city', None)
+            state = inter.get('state', None)
+            postal_code = inter.get('postal_code', None)
+            stars = inter.get('stars', 0.0)
+            review_count = inter.get('review_count', 0)
+            # todo: bucket
             if iid not in item_asins:
                 continue
             if categories is not None and title is not None and iid is not None and city is not None:
                 categories = categories.split(',')
-                new_info = {'categories': categories[:1],
-                            'title': title,
-                            'cate_name': ','.join(categories[:2])}
+                new_info = {
+                    'categories': categories[:1],
+                    'title': title,
+                    'cate_name': ','.join(categories[:2]),
+                    'city': city,
+                    'state': state if state is not None else "", 
+                    'postal_code': postal_code if postal_code is not None else "", 
+                    'stars': int(stars * 2) / 2,
+                    'review_count': review_count
+                }
                 datas[iid] = new_info
     meta_set = set(datas.keys())
     return datas, item_asins.difference(meta_set)
+
+def bucket_fans(n):
+    if n == 0: return "fans_0"
+    elif 1 <= n <= 5: return "fans_1-5"
+    elif 6 <= n <= 20: return "fans_6-20"
+    elif 21 <= n <= 100: return "fans_21-100"
+    else: return "fans_101+"
+
+def bucket_review_cnt(n):
+    if n == 0: return "review_0"
+    elif 1 <= n <= 5: return "review_1-5"
+    elif 6 <= n <= 20: return "review_6-20"
+    elif 21 <= n <= 100: return "review_21-100"
+    else: return "review_101+"
+
+def bucket_user_useful(n):
+    if n == 0: return "useful_0"
+    elif 1 <= n <= 2: return "useful_1-2"
+    elif 3 <= n <= 10: return "useful_3-10"
+    elif 11 <= n <= 100: return "useful_11-100"
+    else: return "useful_101+"
+
+def bucket_user_funny(n):
+    if n == 0: return "funny_0"
+    elif 1 <= n <= 2: return "funny_1-2"
+    elif 3 <= n <= 10: return "funny_3-10"
+    elif 11 <= n <= 100: return "funny_11-100"
+    else: return "funny_101+"
+
+def bucket_user_cool(n):
+    if n == 0: return "cool_0"
+    elif 1 <= n <= 2: return "cool_1-2"
+    elif 3 <= n <= 10: return "cool_3-10"
+    elif 11 <= n <= 100: return "cool_11-100"
+    else: return "cool_101+"
+
+def bucket_compliment_photos(n):
+    if n == 0: return "compliment_photos_0"
+    elif 1 <= n <= 2: return "compliment_photos_1-2"
+    elif 3 <= n <= 10: return "compliment_photos_3-10"
+    elif 11 <= n <= 100: return "compliment_photos_11-100"
+    else: return "compliment_photos_101+"
+
+def bucket_compliment_writer(n):
+    if n == 0: return "compliment_writer_0"
+    elif 1 <= n <= 2: return "compliment_writer_1-2"
+    elif 3 <= n <= 10: return "compliment_writer_3-10"
+    elif 11 <= n <= 100: return "compliment_writer_11-100"
+    else: return "compliment_writer_101+"
+    
+def bucket_compliment_funny(n):
+    if n == 0: return "compliment_funny_0"
+    elif 1 <= n <= 2: return "compliment_funny_1-2"
+    elif 3 <= n <= 10: return "compliment_funny_3-10"
+    elif 11 <= n <= 100: return "compliment_funny_11-100"
+    else: return "compliment_funny_101+"
+
+def bucket_compliment_cool(n):
+    if n == 0: return "compliment_cool_0"
+    elif 1 <= n <= 2: return "compliment_cool_1-2"
+    elif 3 <= n <= 10: return "compliment_cool_3-10"
+    elif 11 <= n <= 100: return "compliment_cool_11-100"
+    else: return "compliment_cool_101+"
+
+def bucket_compliment_plain(n):
+    if n == 0: return "compliment_plain_0"
+    elif 1 <= n <= 2: return "compliment_plain_1-2"
+    elif 3 <= n <= 10: return "compliment_plain_3-10"
+    elif 11 <= n <= 100: return "compliment_plain_11-100"
+    else: return "compliment_plain_101+"
+
+def bucket_compliment_note(n):
+    if n == 0: return "compliment_note_0"
+    elif 1 <= n <= 2: return "compliment_note_1-2"
+    elif 3 <= n <= 10: return "compliment_note_3-10"
+    elif 11 <= n <= 100: return "compliment_note_11-100"
+    else: return "compliment_note_101+"
+
+def bucket_compliment_list(n):
+    if n == 0: return "compliment_list_0"
+    elif 1 <= n <= 2: return "compliment_list_1-2"
+    elif 3 <= n <= 10: return "compliment_list_3-10"
+    elif 11 <= n <= 100: return "compliment_list_11-100"
+    else: return "compliment_list_101+"
+
+def bucket_compliment_cute(n):
+    if n == 0: return "compliment_cute_0"
+    elif 1 <= n <= 2: return "compliment_cute_1-2"
+    elif 3 <= n <= 10: return "compliment_cute_3-10"
+    elif 11 <= n <= 100: return "compliment_cute_11-100"
+    else: return "compliment_cute_101+"
+
+def bucket_compliment_hot(n):
+    if n == 0: return "compliment_hot_0"
+    elif 1 <= n <= 2: return "compliment_hot_1-2"
+    elif 3 <= n <= 10: return "compliment_hot_3-10"
+    elif 11 <= n <= 100: return "compliment_hot_11-100"
+    else: return "compliment_hot_101+"
+
+def bucket_compliment_more(n):
+    if n == 0: return "compliment_more_0"
+    elif 1 <= n <= 2: return "compliment_more_1-2"
+    elif 3 <= n <= 10: return "compliment_more_3-10"
+    elif 11 <= n <= 100: return "compliment_more_11-100"
+    else: return "compliment_more_101+"
+
+def bucket_compliment_profile(n):
+    if n == 0: return "compliment_profile_0"
+    elif 1 <= n <= 2: return "compliment_profile_1-2"
+    elif 3 <= n <= 10: return "compliment_profile_3-10"
+    elif 11 <= n <= 100: return "compliment_profile_11-100"
+    else: return "compliment_profile_101+"
+
+def yelp_user(user_file, data_maps):
+    user_meta = {}
+    user_ids = set(data_maps['user2id'].keys())
+    with open(user_file, 'r') as f:
+        for line in f:
+            user = json.loads(line)
+            uid = user.get('user_id', None)
+            review_count = user.get('review_count', 0)
+            useful = user.get('useful', 0)
+            funny = user.get('funny', 0)
+            cool = user.get('cool', 0)
+            fans = user.get('fans', 0)
+            average_stars = user.get('average_stars', 0)
+            compliment_hot = user.get('compliment_hot', 0)
+            compliment_more = user.get('compliment_more', 0)
+            compliment_profile = user.get('compliment_profile', 0)
+            compliment_cute = user.get('compliment_cute', 0)
+            compliment_list = user.get('compliment_list', 0)
+            compliment_note = user.get('compliment_note', 0)
+            compliment_plain = user.get('compliment_plain', 0)
+            compliment_cool = user.get('compliment_cool', 0)
+            compliment_funny = user.get('compliment_funny', 0)
+            compliment_writer = user.get('compliment_writer', 0)
+            compliment_photos = user.get('compliment_photos', 0)
+            # todo: bucket
+            if uid not in user_ids:
+                continue
+            user_info = {
+                "review_count": bucket_review_cnt(review_count),
+                "useful": bucket_user_useful(useful),
+                "funny": bucket_user_funny(funny),
+                "cool": bucket_user_cool(cool),
+                "fans": bucket_fans(fans),
+                "average_stars": int(average_stars * 2) / 2,
+                "compliment_hot": bucket_compliment_hot(compliment_hot),
+                "compliment_more": bucket_compliment_more(compliment_more),
+                "compliment_profile": bucket_compliment_profile(compliment_profile),
+                "compliment_cute": bucket_compliment_cute(compliment_cute),
+                "compliment_list": bucket_compliment_list(compliment_list),
+                "compliment_note": bucket_compliment_note(compliment_note),
+                "compliment_plain": bucket_compliment_plain(compliment_plain),
+                "compliment_cool": bucket_compliment_cool(compliment_cool),
+                "compliment_funny": bucket_compliment_funny(compliment_funny),
+                "compliment_writer": bucket_compliment_writer(compliment_writer),
+                "compliment_photos": bucket_compliment_photos(compliment_photos),
+            }
+            user_meta[uid] = user_info
+        return user_meta
 
 
 # categories and brand is all attribute
@@ -133,6 +312,33 @@ def get_attribute_ml(meta_infos, datamaps):
 
     return len(attribute2id), np.mean(attribute_lens), datamaps, items2attributes
 
+def get_user_attribute(user_meta, datamaps):
+    attributes = defaultdict(int)
+    for uid, attr_dict in user_meta.items():
+        for key, value in attr_dict.items():
+            combined_attr = f"{key}_{value}"
+            attributes[combined_attr] += 1
+
+    attribute2id = {}
+    id2attribute = {}
+    attribute_id = 1
+    for attr in attributes.keys():
+        if attr not in attribute2id:
+            attribute2id[attr] = attribute_id
+            id2attribute[attribute_id] = attr
+            attribute_id += 1
+
+    users2attributes = {}
+    for uid, attr_dict in user_meta.items():
+        user_id = datamaps['user2id'][uid]
+        attr_list = [attribute2id[f"{key}_{attr_dict[key]}"] for key in attr_dict]
+        users2attributes[user_id] = attr_list
+
+    datamaps['user_attribute2id'] = attribute2id
+    datamaps['id2user_attribute'] = id2attribute
+    datamaps['users2attributes'] = users2attributes
+
+    return len(attribute2id), datamaps, users2attributes
 
 def get_interaction(datas):  # return a dict, key is user and value is a list of items
     user_seq = {}
@@ -243,7 +449,7 @@ def update_data(user_items, item_diff, id2item):
     return new_data, item_num, lm_hist_idx
 
 
-def preprocess(data_file, meta_file, processed_dir):
+def preprocess(data_file, meta_file, user_file, processed_dir):
     datas = yelp(data_file, rating_score=rating_score)
 
     user_items = get_interaction(datas)
@@ -273,6 +479,10 @@ def preprocess(data_file, meta_file, processed_dir):
         'lm_hist_idx': lm_hist_idx
     }
     '''
+
+    print('get user infos')
+    user_meta = yelp_user(user_file, data_maps)
+
     user_count_list = list(user_count.values())
     user_avg, user_min, user_max = np.mean(user_count_list), np.min(user_count_list), np.max(user_count_list)
     item_count_list = list(item_count.values())
@@ -303,6 +513,8 @@ def preprocess(data_file, meta_file, processed_dir):
     print('Begin extracting meta infos...')
 
     attribute_num, avg_attribute, datamaps, item2attributes = get_attribute_ml(meta_infos, data_maps)
+    user_attr_num, datamaps, user2attributes = get_user_attribute(user_meta, data_maps)
+    print(f'User Attribute Num: {user_attr_num}')
     for uid, items in user_items.items():
         item, rating = items
         for i in item:
@@ -326,6 +538,7 @@ def preprocess(data_file, meta_file, processed_dir):
     item2attributes_file = processed_dir + '/item2attributes.json'  # item and corresponding attributes
     datamaps_file = processed_dir + '/datamaps.json'  # datamap
     split_file = processed_dir + '/train_test_split.json'  # train/test splitting
+    user2attributes_file = processed_dir + '/user2attributes.json'
     '''
     data_maps = {
         'user2id': user2id,
@@ -343,18 +556,20 @@ def preprocess(data_file, meta_file, processed_dir):
     save_json(item2attributes, item2attributes_file)
     save_json(datamaps, datamaps_file)
     save_json(train_test_split, split_file)
+    save_json(user2attributes, user2attributes_file)
 
 
 if __name__ == '__main__':
     set_seed(1234)
-    DATA_DIR = '../data/'
-    DATA_SET_NAME = 'yelp'
-    DATA_FILE = os.path.join(DATA_DIR, DATA_SET_NAME + '/raw_data/yelp_academic_dataset_review.json')
-    META_FILE = os.path.join(DATA_DIR, DATA_SET_NAME + '/raw_data/yelp_academic_dataset_business.json')
-    PROCESSED_DIR = os.path.join(DATA_DIR, DATA_SET_NAME, 'proc_data')
+    DATA_DIR = '../../data/'
+    DATA_SET_NAME = 'Yelp'
+    DATA_FILE = os.path.join(DATA_DIR, DATA_SET_NAME + '/yelp_academic_dataset_review.json')
+    META_FILE = os.path.join(DATA_DIR, DATA_SET_NAME + '/yelp_academic_dataset_business.json')
+    USER_FILE = os.path.join(DATA_DIR, DATA_SET_NAME + '/yelp_academic_dataset_user.json')
+    PROCESSED_DIR = os.path.join(DATA_DIR, DATA_SET_NAME, 'proc_data_4')
 
     if not os.path.exists(PROCESSED_DIR):
         os.makedirs(PROCESSED_DIR)
 
-    preprocess(DATA_FILE, META_FILE, PROCESSED_DIR)
+    preprocess(DATA_FILE, META_FILE, USER_FILE, PROCESSED_DIR)
 
