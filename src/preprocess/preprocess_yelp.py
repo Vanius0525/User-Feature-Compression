@@ -212,6 +212,7 @@ def get_attribute_ml(meta_infos, datamaps):
     datamaps['items2attributes'] = items2attributes
     datamaps['id2cate_name'] = id2cate_name
     datamaps['attribute_ft_num'] = 1
+    datamaps['user_attr_ft_num'] = 17 # todo
 
     return len(attribute2id), np.mean(attribute_lens), datamaps, items2attributes
 

@@ -31,6 +31,10 @@ class MyDataset(Data.Dataset):
         self.attr_ft_num = self.stat['attribute_ft_num']
         self.rating_num = self.stat['rating_num']
         self.dense_dim = self.stat['dense_dim']
+
+        self.user_attr_num = self.stat['user_attribute_num']
+        self.user_attr_ft_num = 17 # todo
+
         print('dense dim!!!', self.dense_dim)
         if task == 'rerank':
             self.max_list_len = self.stat['rerank_list_len']
@@ -75,6 +79,7 @@ class MyDataset(Data.Dataset):
     def __getitem__(self, _id):
         if self.task == 'ctr':
             uid, seq_idx, lb = self.data[_id]
+            user_attr_id = self.user2attribution[str(uid)]
             item_seq, rating_seq = self.sequential_data[str(uid)]
             iid = item_seq[seq_idx]
             hist_seq_len = seq_idx - max(0, seq_idx - self.max_hist_len)
@@ -89,7 +94,8 @@ class MyDataset(Data.Dataset):
                 'hist_iid_seq': torch.tensor(hist_item_seq).long(),
                 'hist_aid_seq': torch.tensor(hist_attri_seq).long(),
                 'hist_rate_seq': torch.tensor(hist_rating_seq).long(),
-                'hist_seq_len': torch.tensor(hist_seq_len).long()
+                'hist_seq_len': torch.tensor(hist_seq_len).long(),
+                'uid_attr': torch.tensor(user_attr_id).long()
             }
             if self.augment:
                 item_aug_vec = self.item_aug_data[str(self.id2item[str(iid)])]

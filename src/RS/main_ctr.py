@@ -141,10 +141,12 @@ def train(args):
     best_auc = 0
     global_step = 0
     patience = 0
+    print('epoch:', args.epoch_num)
     for epoch in range(args.epoch_num):
         t = time.time()
         train_loss = []
         model.train()
+        print('train_loader:', len(train_loader))
         for _, data in enumerate(train_loader):
             outputs = model(data)
             loss = outputs['loss']
@@ -238,8 +240,8 @@ def gen_modified_embedding(item_path, attr_path, csv_file_path, json_file_path, 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', default='/home/tongwan/Yelp_raw_data/proc_data_6/')
-    parser.add_argument('--save_dir', default='/home/tongwan/Yelp_save/proc_data_6/')
+    parser.add_argument('--data_dir', default='../../data/yelp/proc_data_6/')
+    parser.add_argument('--save_dir', default='../../model/yelp_6_no_user')
     parser.add_argument('--reload_path', type=str, default='', help='model ckpt dir')
     parser.add_argument('--setting_path', type=str, default='', help='setting dir')
 

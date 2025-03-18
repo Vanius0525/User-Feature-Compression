@@ -40,6 +40,10 @@ class BaseModel(nn.Module):
         self.rating_num = dataset.rating_num
         self.dense_dim = dataset.dense_dim
         self.max_hist_len = args.max_hist_len
+
+        self.user_attr_num = dataset.user_attr_num
+        self.user_attr_fnum = dataset.user_attr_ft_num
+
         if self.task == 'rerank':
             self.max_list_len = dataset.max_list_len
 
@@ -62,6 +66,9 @@ class BaseModel(nn.Module):
         self.item_embedding = nn.Embedding(self.item_num + 1, self.embed_dim)
         self.attr_embedding = nn.Embedding(self.attr_num + 1, self.embed_dim)
         self.rating_embedding = nn.Embedding(self.rating_num + 1, self.embed_dim)
+
+        self.user_attr_embedding = nn.Embedding(self.user_attr_num + 1, self.embed_dim)
+
         if self.augment_num:
             self.convert_module = ConvertNet(args, self.dense_dim, self.convert_dropout, self.convert_type)
             self.dens_vec_num = args.convert_arch[-1] * self.augment_num
@@ -85,10 +92,10 @@ class BaseModel(nn.Module):
                                                                                       self.embed_dim)
         hist_emb = torch.cat([hist_item_emb, hist_attr_emb, hist_rating_emb], dim=-1)
         hist_len = inp['hist_seq_len'].to(device)
-
         if self.task == 'ctr':
             iid_emb = self.item_embedding(inp['iid'].to(device))
             attr_emb = self.attr_embedding(inp['aid'].to(device)).view(-1, self.embed_dim * self.attr_fnum)
+            user_attr_emb = self.user_attr_embedding(inp['uid_attr'].to(device)).view(-1, self.embed_dim * self.user_attr_fnum)
             item_emb = torch.cat([iid_emb, attr_emb], dim=-1)
             # item_emb = item_emb.view(-1, self.itm_emb_dim)
             labels = inp['lb'].to(device)
@@ -114,7 +121,7 @@ class BaseModel(nn.Module):
                     dens_vec, orig_dens_vec = kg_vec, [kg_item_vec]
             if dens_vec is None:
                 orig_dens_vec = None
-            return item_emb, hist_emb, hist_len, dens_vec, orig_dens_vec, labels
+            return item_emb, hist_emb, hist_len, dens_vec, orig_dens_vec, labels, user_attr_emb
         elif self.task == 'rerank':
             iid_emb = self.item_embedding(inp['iid_list'].to(device))
             attr_emb = self.attr_embedding(inp['aid_list'].to(device)).view(-1, self.max_list_len,
@@ -268,7 +275,7 @@ class DeepInterestNet(BaseModel):
         self.final_fc = nn.Linear(self.final_mlp_arch[-1], 1)
 
     def get_input_dim(self):
-        return self.itm_emb_dim * 2 + self.dens_vec_num
+        return self.itm_emb_dim * 2 + self.dens_vec_num + self.embed_dim * self.user_attr_fnum
 
     def forward(self, inp):
         """
@@ -277,17 +284,16 @@ class DeepInterestNet(BaseModel):
             :param user_ft (bs, usr_fnum)
             :return score (bs)
         """
-        query, user_behavior, hist_len, dens_vec, orig_dens_vec, labels = self.process_input(inp)
+        query, user_behavior, hist_len, dens_vec, orig_dens_vec, labels, user_attr_emb = self.process_input(inp)
         mask = self.get_mask(hist_len, self.max_hist_len)
 
         user_behavior = self.map_layer(user_behavior)
         user_interest, _ = self.attention_net(query, user_behavior, mask)
 
         if self.with_aug:
-            concat_input = torch.cat([user_interest, query, dens_vec], dim=-1)
+            concat_input = torch.cat([user_attr_emb, user_interest, query, dens_vec], dim=-1)
         else:
-            concat_input = torch.cat([user_interest, query], dim=-1)
-
+            concat_input = torch.cat([user_attr_emb, user_interest, query], dim=-1)
         mlp_out = self.final_mlp(concat_input)
         logits = self.final_fc(mlp_out)
         out = self.get_ctr_output(logits, labels)

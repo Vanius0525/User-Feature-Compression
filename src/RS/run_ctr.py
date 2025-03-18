@@ -3,7 +3,7 @@ import os
 import sys
 
 # dataset_name = 'ml-1m'
-dataset_name = 'Yelp'
+dataset_name = 'yelp'
 # dataset_name = 'ml-25m'
 
 # Training args
@@ -56,7 +56,7 @@ else:
     experts = [1, 2, 3, 4, 5, 6]
     num_worker = 4
 
-if dataset_name == 'Yelp':
+if dataset_name == 'yelp':
     lrs = ['1e-4', '2e-4', '5e-4', '1e-3']
 else:
     lrs = ['1e-4', '5e-4', '1e-3', '2e-3']
