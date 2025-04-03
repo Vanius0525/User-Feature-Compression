@@ -5,4 +5,6 @@ src/preprocess/generate_seq_prompt_ml.py
 src/preprocess/preprocess_ml-1m.py
 src/preprocess/preprocess_ml-25m.py
 src/RS/__pycache__/
+src/RS/model/
+src/RS/pretrain_model/
 MARC_code_origin/

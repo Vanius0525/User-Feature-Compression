@@ -65,31 +65,31 @@ else:
 for lr_sched in ['cosine']:
     for batch_size in bss:
         for lr in lrs:
-            for expert_num in experts:
-                print('---------------bs, lr, epoch, expert , convert arch, gru----------', batch_size,
-                      lr, epoch, expert_num, convert_arch, model)
-                subprocess.run(['python3', '-u', 'main_ctr.py',
-                                f'--save_dir=./model/{dataset_name}/{task_name}/{model}/WDA_Emb{embed_size}_epoch{epoch}'
-                                f'_bs{batch_size}_lr{lr}_{lr_sched}_cnvt_arch_{convert_arch}_cnvt_type_{convert_type}'
-                                f'_eprt_{expert_num}_wd{weight_decay}_drop{dropout}' + \
-                                f'_hl{final_mlp}_cl{num_cross_layers}_augment_{augment}',
-                                f'--data_dir={data_dir}',
-                                f'--augment={augment}',
-                                f'--aug_prefix={aug_prefix}',
-                                f'--task={task_name}',
-                                f'--max_hist_len={max_hist_len}',
-                                f'--convert_arch={convert_arch}',
-                                f'--convert_type={convert_type}',
-                                f'--convert_dropout={convert_dropout}',
-                                f'--epoch_num={epoch}',
-                                f'--num_worker={num_worker}',
-                                f'--batch_size={batch_size}',
-                                f'--lr={lr}',
-                                f'--lr_sched={lr_sched}',
-                                f'--weight_decay={weight_decay}',
-                                f'--algo={model}',
-                                f'--embed_size={embed_size}',
-                                f'--expert_num={expert_num}',
-                                f'--final_mlp_arch={final_mlp}',
-                                f'--dropout={dropout}',
-                                ])
+            expert_num = 0
+            print('---------------bs, lr, epoch, expert , convert arch, gru----------', batch_size,
+                    lr, epoch, expert_num, convert_arch, model)
+            subprocess.run(['python3', '-u', 'main_ctr.py',
+                            f'--save_dir=./model/{dataset_name}/{task_name}/{model}/WDA_Emb{embed_size}_epoch{epoch}'
+                            f'_bs{batch_size}_lr{lr}_{lr_sched}_cnvt_arch_{convert_arch}_cnvt_type_{convert_type}'
+                            f'_eprt_{expert_num}_wd{weight_decay}_drop{dropout}' + \
+                            f'_hl{final_mlp}_cl{num_cross_layers}_augment_{augment}',
+                            f'--data_dir={data_dir}',
+                            f'--augment={augment}',
+                            f'--aug_prefix={aug_prefix}',
+                            f'--task={task_name}',
+                            f'--max_hist_len={max_hist_len}',
+                            f'--convert_arch={convert_arch}',
+                            f'--convert_type={convert_type}',
+                            f'--convert_dropout={convert_dropout}',
+                            f'--epoch_num={epoch}',
+                            f'--num_worker={num_worker}',
+                            f'--batch_size={batch_size}',
+                            f'--lr={lr}',
+                            f'--lr_sched={lr_sched}',
+                            f'--weight_decay={weight_decay}',
+                            f'--algo={model}',
+                            f'--embed_size={embed_size}',
+                            f'--expert_num={expert_num}',
+                            f'--final_mlp_arch={final_mlp}',
+                            f'--dropout={dropout}',
+                            ])

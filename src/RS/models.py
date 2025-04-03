@@ -275,7 +275,8 @@ class DeepInterestNet(BaseModel):
         self.final_fc = nn.Linear(self.final_mlp_arch[-1], 1)
 
     def get_input_dim(self):
-        return self.itm_emb_dim * 2 + self.dens_vec_num + self.embed_dim * self.user_attr_fnum
+        print("emb_dim:", self.itm_emb_dim * 2 + self.dens_vec_num + self.user_attr_fnum * self.embed_dim)
+        return self.itm_emb_dim * 2 + self.dens_vec_num + self.user_attr_fnum * self.embed_dim
 
     def forward(self, inp):
         """
