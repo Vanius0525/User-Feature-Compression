@@ -8,3 +8,6 @@ src/RS/__pycache__/
 src/RS/model/
 src/RS/pretrain_model/
 MARC_code_origin/
+src/RS/draft.py
+src/RS/pretrain_model_final/
+src/RS/pretrain_model_new/

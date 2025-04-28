@@ -23,6 +23,7 @@ from models import DeepInterestNet, DCN, DeepFM, DIEN, xDeepFM, FiBiNet, FiGNN, 
     AutoInt, DenseMLP, DenseLR
 from dataset import MyDataset
 from optimization import AdamW, get_cosine_schedule_with_warmup, get_constant_schedule_with_warmup
+from tqdm import tqdm  # 引入 tqdm
 
 
 def eval(model, test_loader):
@@ -147,7 +148,9 @@ def train(args):
         train_loss = []
         model.train()
         print('train_loader:', len(train_loader))
-        for _, data in enumerate(train_loader):
+        
+        # 使用 tqdm 包裹 train_loader
+        for _, data in enumerate(tqdm(train_loader, desc=f"Epoch {epoch + 1}/{args.epoch_num}")):
             outputs = model(data)
             loss = outputs['loss']
             optimizer.zero_grad()
@@ -156,19 +159,15 @@ def train(args):
             scheduler.step()
             train_loss.append(loss.item())
             global_step += 1
+
         train_time = time.time() - t
         eval_auc, eval_ll, eval_loss, eval_time = eval(model, test_loader)
         print("EPOCH %d" % (epoch))
-        # print("EPOCH %d  STEP %d train loss: %.5f, train time: %.5f, test loss: %.5f, test time: %.5f, auc: %.5f, "
-        #       "logloss: %.5f" % (epoch, global_step, np.mean(train_loss), train_time, eval_loss,
-        #                          eval_time, eval_auc, eval_ll))
         if eval_auc > best_auc:
             best_auc = eval_auc
-            # torch.save(model, save_path)
             print("EPOCH %d  STEP %d train loss: %.5f, train time: %.5f, test loss: %.5f, test time: %.5f, auc: %.5f, "
                   "logloss: %.5f" % (epoch, global_step, np.mean(train_loss), train_time, eval_loss,
                                      eval_time, eval_auc, eval_ll))
-            # print('model save in', save_path)
             patience = 0
             if args.save_embed:
                 item_path = os.path.join(args.data_dir, "ctr_embedding", "item.csv")
@@ -244,6 +243,8 @@ def parse_args():
     parser.add_argument('--save_dir', default='../../model/yelp_6_no_user')
     parser.add_argument('--reload_path', type=str, default='', help='model ckpt dir')
     parser.add_argument('--setting_path', type=str, default='', help='setting dir')
+
+    parser.add_argument('--pretrain_model_dir', type=str, default='pretrain_model/bs128_lr0.0001/dim32_lr0.0001_mask0.15_bs128_ep20/best_pretrain_model.pt', help='pretrained model dir, e.g., UPRec')
 
     parser.add_argument('--save_embed', default='false', type=str, help='whether to save embedding')
     parser.add_argument('--group_aug', type=str, default='false', help='whether to use group augment')

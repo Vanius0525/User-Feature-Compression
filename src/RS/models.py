@@ -275,8 +275,8 @@ class DeepInterestNet(BaseModel):
         self.final_fc = nn.Linear(self.final_mlp_arch[-1], 1)
 
     def get_input_dim(self):
-        print("emb_dim:", self.itm_emb_dim * 2 + self.dens_vec_num + self.user_attr_fnum * self.embed_dim)
-        return self.itm_emb_dim * 2 + self.dens_vec_num + self.user_attr_fnum * self.embed_dim
+        # print("emb_dim:", self.itm_emb_dim * 2 + self.dens_vec_num + self.embed_dim)
+        return self.itm_emb_dim * 2 + self.dens_vec_num + self.embed_dim
 
     def forward(self, inp):
         """
@@ -288,13 +288,26 @@ class DeepInterestNet(BaseModel):
         query, user_behavior, hist_len, dens_vec, orig_dens_vec, labels, user_attr_emb = self.process_input(inp)
         mask = self.get_mask(hist_len, self.max_hist_len)
 
+        # print(user_attr_emb.shape, "user_attr_emb_before")
+
+        # 拼接预训练的用户嵌入
+        if 'user_emb_pretrained' in inp:
+            # print("user_emb_pretrained succeeded")
+            user_emb_pretrained = inp['user_emb_pretrained'].to(user_attr_emb.device)
+            user_attr_emb = torch.cat([user_attr_emb, user_emb_pretrained], dim=-1)
+
+        # print(user_attr_emb.shape, "user_attr_emb_after")
+        # print(user_emb_pretrained.shape, "user_emb_pretrained")
+
         user_behavior = self.map_layer(user_behavior)
         user_interest, _ = self.attention_net(query, user_behavior, mask)
-
+        # print(user_interest.shape, "user_interest shape")
+        # print(query.shape, "query shape")
         if self.with_aug:
             concat_input = torch.cat([user_attr_emb, user_interest, query, dens_vec], dim=-1)
         else:
-            concat_input = torch.cat([user_attr_emb, user_interest, query], dim=-1)
+            concat_input = torch.cat([user_emb_pretrained, user_interest, query], dim=-1)
+        # print(concat_input.shape, "concat_input shape")
         mlp_out = self.final_mlp(concat_input)
         logits = self.final_fc(mlp_out)
         out = self.get_ctr_output(logits, labels)

@@ -43,6 +43,8 @@ convert_arch = '128,32'
 convert_dropout = 0.0
 expert_num = 2
 
+pretrain_model_dir = f'pretrain_model/bs128_lr0.0001/dim32_lr0.0001_mask0.15_bs128_ep20/best_pretrain_model.pt'
+
 
 if dataset_name == 'ml-25m':  # ml-25m is much slower than other dataset
     bss = [256, 512]
@@ -91,5 +93,6 @@ for lr_sched in ['cosine']:
                             f'--embed_size={embed_size}',
                             f'--expert_num={expert_num}',
                             f'--final_mlp_arch={final_mlp}',
+                            f'--pretrain_model_dir={pretrain_model_dir}',
                             f'--dropout={dropout}',
                             ])
