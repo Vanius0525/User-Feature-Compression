@@ -10,7 +10,7 @@ from layers import AttentionPoolingLayer, MLP, CrossNet, ConvertNet, CIN, MultiH
     InterestEvolving, SLAttention, MoE
 from layers import Phi_function
 from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss
-
+from pretrain import PretrainRecModel
 
 def tau_function(x):
     return torch.where(x > 0, torch.exp(x), torch.zeros_like(x))
@@ -69,19 +69,26 @@ class BaseModel(nn.Module):
 
         self.user_attr_embedding = nn.Embedding(self.user_attr_num + 1, self.embed_dim)
 
-        if self.augment_num:
-            self.convert_module = ConvertNet(args, self.dense_dim, self.convert_dropout, self.convert_type)
-            self.dens_vec_num = args.convert_arch[-1] * self.augment_num
-
-        if self.kg_aug:
-            moe_arch = args.kg_expert_num, args.kg_convert_arch
-            self.kg_convert_module = MoE(moe_arch, self.kg_aug_dim,
-                                         self.convert_dropout)
-            self.dens_vec_num += args.kg_convet_arch[-1]
-
         self.module_inp_dim = self.get_input_dim()
         self.field_num = self.get_field_num()
         self.convert_loss = 0
+
+        self.pretrain_model_dir = args.pretrain_model_dir
+        print('pretrain model dir in models:', self.pretrain_model_dir)
+
+        self.pretrained_model = PretrainRecModel(
+            user_attr_num=self.user_attr_num + 1,
+            num_items=self.item_num + 1,
+            embed_dim=32, 
+            max_seq_len=args.max_hist_len,
+            user_attr_ft_num=self.user_attr_fnum,
+            attr_num=self.attr_num + 1,
+        )
+
+        self.pretrained_model.load_state_dict(torch.load(self.pretrain_model_dir))
+        self.pretrained_model.eval()
+        for param in self.pretrained_model.parameters():
+            param.requires_grad = False
 
     def process_input(self, inp):
         device = next(self.parameters()).device
@@ -95,7 +102,6 @@ class BaseModel(nn.Module):
         if self.task == 'ctr':
             iid_emb = self.item_embedding(inp['iid'].to(device))
             attr_emb = self.attr_embedding(inp['aid'].to(device)).view(-1, self.embed_dim * self.attr_fnum)
-            user_attr_emb = self.user_attr_embedding(inp['uid_attr'].to(device)).view(-1, self.embed_dim * self.user_attr_fnum)
             item_emb = torch.cat([iid_emb, attr_emb], dim=-1)
             # item_emb = item_emb.view(-1, self.itm_emb_dim)
             labels = inp['lb'].to(device)
@@ -121,39 +127,21 @@ class BaseModel(nn.Module):
                     dens_vec, orig_dens_vec = kg_vec, [kg_item_vec]
             if dens_vec is None:
                 orig_dens_vec = None
-            return item_emb, hist_emb, hist_len, dens_vec, orig_dens_vec, labels, user_attr_emb
-        elif self.task == 'rerank':
-            iid_emb = self.item_embedding(inp['iid_list'].to(device))
-            attr_emb = self.attr_embedding(inp['aid_list'].to(device)).view(-1, self.max_list_len,
-                                                                            self.embed_dim * self.attr_fnum)
-            item_emb = torch.cat([iid_emb, attr_emb], dim=-1)
-            item_emb = item_emb.view(-1, self.max_list_len, self.itm_emb_dim)
-            labels = inp['lb_list'].to(device).view(-1, self.max_list_len)
-            if self.augment_num:
-                if self.args.augment:
-                    hist_aug = inp['hist_aug_vec'].to(device)
-                    item_list_aug = inp['item_aug_vec_list']
-                if self.group_aug:
-                    item_group_aug_vec_list = inp['item_group_aug_vec_list']
-                    user_pos_group_aug_vec = inp['user_pos_group_aug_vec'].to(device)
-                    user_neg_group_aug_vec = inp['user_neg_group_aug_vec'].to(device)
-                if self.group_aug and self.args.augment:
-                    orig_dens_list = [[hist_aug, user_pos_group_aug_vec, user_neg_group_aug_vec,
-                                       item_aug.to(device), item_group_aug.to(device)]
-                                      for item_aug, item_group_aug in zip(item_list_aug, item_group_aug_vec_list)]
-                elif self.group_aug:
-                    orig_dens_list = [[user_pos_group_aug_vec, user_pos_group_aug_vec, item_group_aug.to(device)]
-                                      for item_group_aug in item_group_aug_vec_list]
-                else:
-                    orig_dens_list = [[hist_aug, item_aug.to(device)] for item_aug in item_list_aug]
 
+            if self.pretrained_model:
+                with torch.no_grad():
+                    # print("hist_aid_seq:", inp['hist_aid_seq'])
+                    # print("hist_aid_seq_shape:", inp['hist_aid_seq'].shape)
+                    attr_seq = torch.tensor(inp['hist_aid_seq'], dtype=torch.long).squeeze(-1)
+                    # print("attr_seq_shape:", attr_seq.shape)
+                    _, _, user_emb = self.pretrained_model(
+                        input_ids=attr_seq,
+                        mask_positions=None
+                    )
+                user_emb = user_emb.squeeze(0)
+                # print("user_emb_shape:", user_emb.shape)
 
-                dens_vec_list = [self.convert_module(orig_dens) for orig_dens in orig_dens_list]
-                dens_vec = torch.stack([dens for dens in dens_vec_list], dim=1)
-            else:
-                dens_vec, orig_dens_list = None, None
-
-            return item_emb, hist_emb, hist_len, dens_vec, orig_dens_list, labels
+            return item_emb, hist_emb, hist_len, dens_vec, orig_dens_vec, labels, user_emb
         else:
             raise NotImplementedError
 
@@ -276,7 +264,8 @@ class DeepInterestNet(BaseModel):
 
     def get_input_dim(self):
         # print("emb_dim:", self.itm_emb_dim * 2 + self.dens_vec_num + self.embed_dim)
-        return self.itm_emb_dim * 2 + self.dens_vec_num + self.embed_dim
+        # return self.itm_emb_dim * 2 + self.dens_vec_num + self.embed_dim
+        return self.itm_emb_dim * 2 + self.dens_vec_num
 
     def forward(self, inp):
         """
@@ -285,28 +274,25 @@ class DeepInterestNet(BaseModel):
             :param user_ft (bs, usr_fnum)
             :return score (bs)
         """
-        query, user_behavior, hist_len, dens_vec, orig_dens_vec, labels, user_attr_emb = self.process_input(inp)
+        query, user_behavior, hist_len, dens_vec, orig_dens_vec, labels, user_emb = self.process_input(inp)
         mask = self.get_mask(hist_len, self.max_hist_len)
 
         # print(user_attr_emb.shape, "user_attr_emb_before")
 
-        # 拼接预训练的用户嵌入
-        if 'user_emb_pretrained' in inp:
-            # print("user_emb_pretrained succeeded")
-            user_emb_pretrained = inp['user_emb_pretrained'].to(user_attr_emb.device)
-            user_attr_emb = torch.cat([user_attr_emb, user_emb_pretrained], dim=-1)
-
+        # print(user_attr_emb, "user_attr_emb")
         # print(user_attr_emb.shape, "user_attr_emb_after")
         # print(user_emb_pretrained.shape, "user_emb_pretrained")
+
+        # print(user_emb.shape, "user_emb shape")
 
         user_behavior = self.map_layer(user_behavior)
         user_interest, _ = self.attention_net(query, user_behavior, mask)
         # print(user_interest.shape, "user_interest shape")
         # print(query.shape, "query shape")
         if self.with_aug:
-            concat_input = torch.cat([user_attr_emb, user_interest, query, dens_vec], dim=-1)
+            concat_input = torch.cat([user_emb, user_interest, query, dens_vec], dim=-1)
         else:
-            concat_input = torch.cat([user_emb_pretrained, user_interest, query], dim=-1)
+            concat_input = torch.cat([user_interest, query], dim=-1)
         # print(concat_input.shape, "concat_input shape")
         mlp_out = self.final_mlp(concat_input)
         logits = self.final_fc(mlp_out)

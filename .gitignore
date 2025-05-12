@@ -7,7 +7,9 @@ src/preprocess/preprocess_ml-25m.py
 src/RS/__pycache__/
 src/RS/model/
 src/RS/pretrain_model/
+src/RS/pretrain_model_new/
 MARC_code_origin/
 src/RS/draft.py
+src/RS/draft_pretrain.py
 src/RS/pretrain_model_final/
-src/RS/pretrain_model_new/
+src/RS/pretrain_model_may_9th

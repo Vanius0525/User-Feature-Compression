@@ -43,8 +43,7 @@ convert_arch = '128,32'
 convert_dropout = 0.0
 expert_num = 2
 
-pretrain_model_dir = f'pretrain_model/bs128_lr0.0001/dim32_lr0.0001_mask0.15_bs128_ep20/best_pretrain_model.pt'
-
+pretrain_model_dir = f'pretrain_model_may_9th/bs768_lr0.0005/dim32_lr0.0005_mask0.2_bs768_ep20/best_pretrain_model.pt'
 
 if dataset_name == 'ml-25m':  # ml-25m is much slower than other dataset
     bss = [256, 512]
@@ -52,14 +51,16 @@ if dataset_name == 'ml-25m':  # ml-25m is much slower than other dataset
     experts = [2, 3, 4]
     num_worker = 8
 else:
-    bss = [256, 128, 512, 1024]
+    #bss = [256, 128, 512, 1024]
+    bss = [1024, 512]
     # experts = [1, 2, 3]
     # experts = [4, 5, 6]
     experts = [1, 2, 3, 4, 5, 6]
     num_worker = 4
 
 if dataset_name == 'yelp':
-    lrs = ['1e-4', '2e-4', '5e-4', '1e-3']
+    #lrs = ['1e-4', '2e-4', '5e-4', '1e-3']
+    lrs = ['1e-4', '5e-4', '1e-3']
 else:
     lrs = ['1e-4', '5e-4', '1e-3', '2e-3']
 

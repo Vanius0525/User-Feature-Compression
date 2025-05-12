@@ -1,16 +1,17 @@
 import subprocess
 
 # hyperparameters
-batch_sizes = [768, 512, 1024]
-learning_rates = [1e-4, 2e-4, 5e-4, 1e-3]
+batch_sizes = [768, 1024, 512]
+# learning_rates = [1e-4]
+learning_rates = [1e-3, 5e-4, 1e-4]
 
 # data directory and other parameters
 data_dir = '../../data/yelp/proc_data_6'
 epochs = 20
 embed_dim = 32
-max_seq_len = 10
+max_seq_len = 10 # 30 in the paper
 mask_prob = 0.20
-save_dir = './pretrain_model_final'
+save_dir = './pretrain_model_may_9th'
 
 for batch_size in batch_sizes:
     for lr in learning_rates:
